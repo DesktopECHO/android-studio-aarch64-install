@@ -14,6 +14,7 @@
 # - Download caching and SHA-256 verification for Android Studio, IntelliJ donor, SDK, and NDK downloads.
 # - Backup of an existing Android Studio install before replacement.
 # - Requirement for distro-supplied `adb`, with distro-specific install guidance when `adb` is not on `PATH`.
+# - Installation of ARM64 Layout Editor and Compose Preview native libraries.
 # - Print environment variables for `ANDROID_HOME`, `ANDROID_SDK_ROOT`, and `android.ndkVersion`.
 #
 # Removed
@@ -24,13 +25,14 @@
 #
 
 set -Eeuo pipefail
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DRY_RUN=0 LAUNCH_MODE=auto
 while (($#)); do
   case "$1" in
     --dry-run) DRY_RUN=1 ;;
     --no-launch) LAUNCH_MODE=no ;;
     --help|-h) cat <<'EOF'
-Usage: aarch64.sh [options]
+Usage: android-studio-aarch64-install.sh [options]
   --dry-run   Resolve sources and verify download URLs without installing.
   --no-launch Do not launch Android Studio after install.
   --help      Show this help text.
@@ -43,6 +45,7 @@ done
 
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/share}" AS_ROOT_DIR="${AS_ROOT_DIR:-${INSTALL_DIR}/android-studio}"
 SDK_ROOT_DIR="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}" NDK_DIR="${NDK_DIR:-${SDK_ROOT_DIR}/ndk}" CACHE_DIR="${CACHE_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/androidstudio-installer}"
+LAYOUTLIB_SOURCE_DIR="${LAYOUTLIB_SOURCE_DIR:-${SCRIPT_DIR}/lib}"
 AS_VERSION="2026.1.3.8" AS_ARCHIVE="android-studio-quail3-patch1-linux.tar.gz" AS_URL="https://redirector.gvt1.com/edgedl/android/studio/ide-zips/${AS_VERSION}/${AS_ARCHIVE}" AS_SHA256="5bd5ee5d6e747b13f82fba3241380bd358cc2f4a847815c8e860757df13dc35f"
 IDEA_VERSION="2026.1.4" IDEA_ARCHIVE="idea-2026.1.4-aarch64.tar.gz" IDEA_URL="https://download.jetbrains.com/idea/${IDEA_ARCHIVE}" IDEA_SHA256="303645b8bad4c5c0887346618b842180a3de53b3e0b3da09fc5c501f59f78013"
 SDK_RELEASE_VERSION="37.0.0" SDK_ARCHIVE="android-sdk-aarch64-linux-musl.tar.xz" SDK_URL="https://github.com/HomuHomu833/android-sdk-custom/releases/download/${SDK_RELEASE_VERSION}/${SDK_ARCHIVE}" SDK_SHA256="b8424efb05ed7a25eb0ded8cea7f630ce59c9edab7ea06223aba9aa16bf40175"
@@ -55,6 +58,23 @@ check_url(){ curl -L --fail --silent --show-error --range 0-0 -o /dev/null "$1";
 copy_if(){ [[ -e "$1" ]] || return 0; mkdir -p "$(dirname "$2")"; rm -rf "$2"; cp -a "$1" "$2"; }
 should_launch(){ [[ "$LAUNCH_MODE" == no ]] && return 1; [[ "$LAUNCH_MODE" == auto && -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] && return 1; return 0; }
 install_native_adb(){ install -m 775 "$(readlink -f "$(command -v adb)")" "${SDK_ROOT_DIR}/platform-tools/adb"; file "${SDK_ROOT_DIR}/platform-tools/adb" 2>/dev/null | grep -q 'ARM aarch64' || die "Installed SDK adb is not an ARM64 binary"; }
+
+validate_layoutlib() {
+  local library src
+  for library in layoutlib_jni.so libandroid_runtime.so; do
+    src="${LAYOUTLIB_SOURCE_DIR}/${library}"
+    file "$src" 2>/dev/null | grep -q 'ELF 64-bit.*ARM aarch64' || \
+      die "ARM64 layoutlib artifact not found: $src"
+  done
+}
+
+install_layoutlib() {
+  local library dst="${AS_ROOT_DIR}/plugins/design-tools/resources/layoutlib/data/linux/lib64"
+  [[ -d "$dst" ]] || die "Android Studio layoutlib directory not found: $dst"
+  for library in layoutlib_jni.so libandroid_runtime.so; do
+    install -m 755 "${LAYOUTLIB_SOURCE_DIR}/${library}" "$dst/$library"
+  done
+}
 
 desktop_entry() {
   local f="${XDG_DATA_HOME:-$HOME/.local/share}/applications/android-studio.desktop"
@@ -88,6 +108,7 @@ overwrite_arm64_build_tools() {
 for cmd in curl tar xz sha256sum find awk sed mktemp cp mv rm nohup grep dirname file install readlink; do need "$cmd"; done
 case "$(uname -m)" in aarch64|arm64) ;; *) die "This installer is for aarch64/arm64 hosts; detected: $(uname -m)" ;; esac
 command -v adb >/dev/null 2>&1 || die 'adb not found, "sudo apt install adb" on Debian/Ubuntu or "sudo dnf install android-tools" on Fedora/RedHat'
+validate_layoutlib
 if (( DRY_RUN )); then for url in "$AS_URL" "$IDEA_URL" "$SDK_URL" "$NDK_URL"; do check_url "$url"; done; echo "Dry run completed successfully."; exit 0; fi
 
 cat <<EOF
@@ -124,6 +145,9 @@ EOF
 chmod +x "${AS_ROOT_DIR}/bin/studio"
 find "${AS_ROOT_DIR}/bin" -maxdepth 1 -type f -name '*.sh' -exec sed -i 's/amd64/aarch64/g' {} +
 sed -i 's/amd64/aarch64/g' "${AS_ROOT_DIR}/product-info.json"
+
+echo "==> Installing ARM64 Layout Editor and Compose Preview libraries"
+install_layoutlib
 
 echo "==> Installing Android SDK ${SDK_RELEASE_VERSION}"
 fetch "$SDK_URL" "$SDK_TXZ" "$SDK_SHA256"
