@@ -57,7 +57,7 @@ fetch(){ local u="$1" o="$2" s="$3" t="${2}.part"; [[ -s "$o" ]] || { curl -L --
 check_url(){ curl -L --fail --silent --show-error --range 0-0 -o /dev/null "$1"; }
 copy_if(){ [[ -e "$1" ]] || return 0; mkdir -p "$(dirname "$2")"; rm -rf "$2"; cp -a "$1" "$2"; }
 should_launch(){ [[ "$LAUNCH_MODE" == no ]] && return 1; [[ "$LAUNCH_MODE" == auto && -z "${DISPLAY:-}${WAYLAND_DISPLAY:-}" ]] && return 1; return 0; }
-install_native_adb(){ install -m 775 "$(readlink -f "$(command -v adb)")" "${SDK_ROOT_DIR}/platform-tools/adb"; file "${SDK_ROOT_DIR}/platform-tools/adb" 2>/dev/null | grep -q 'ARM aarch64' || die "Installed SDK adb is not an ARM64 binary"; }
+guard_native_adb(){ nohup bash -c 'while :; do file "$2" 2>/dev/null | grep -q "ARM aarch64" || install -m 775 "$1" "$2"; sleep 10; done' _ "$(readlink -f "$(command -v adb)")" "${SDK_ROOT_DIR}/platform-tools/adb" >/dev/null 2>&1 & }
 
 validate_layoutlib() {
   local library src
@@ -154,7 +154,7 @@ fetch "$SDK_URL" "$SDK_TXZ" "$SDK_SHA256"
 TMP="$(mktemp -d)"; xz -T0 -dc "$SDK_TXZ" | tar --no-same-owner -C "$TMP" -xf - --strip-components=1
 while IFS= read -r -d '' p; do b=${p##*/}; rm -rf "${SDK_ROOT_DIR:?}/$b"; mv "$p" "${SDK_ROOT_DIR}/$b"; done < <(find "$TMP" -mindepth 1 -maxdepth 1 -print0)
 rm -rf "$TMP"
-install_native_adb
+guard_native_adb
 mkdir -p "$HOME/.gradle"
 { grep -v '^android\.aapt2FromMavenOverride=' "$HOME/.gradle/gradle.properties" 2>/dev/null || true; echo "android.aapt2FromMavenOverride=${SDK_ROOT_DIR}/build-tools/${SDK_RELEASE_VERSION}/aapt2"; } > "$HOME/.gradle/gradle.properties.new" && mv "$HOME/.gradle/gradle.properties.new" "$HOME/.gradle/gradle.properties"
 

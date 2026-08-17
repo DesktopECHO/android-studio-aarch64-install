@@ -3,12 +3,11 @@
 Unofficial Android Studio packaging for glibc-based Linux ARM64 systems. The
 installer combines the Android Studio distribution with the ARM64 JetBrains
 Runtime and native components, an ARM64 Android SDK and NDK, and native rendering
-libraries for the XML Layout Editor and Compose Preview. It does not include an
-emulator. Apple Silicon users can run the
-[Ika Android Emulator](https://github.com/DesktopECHO/ika).
-A physical Android device can also be used to run and debug applications.
+libraries for the XML Layout Editor and Compose Preview. 
 
-The installer targets Debian 13, Ubuntu 26.04, and Fedora 44 on `aarch64` and has
+The installer does not include an emulator. Developers using Apple Silicon users can run the [Ika Android Emulator](https://github.com/DesktopECHO/ika), or a physical Android device can also be used to run and debug applications.
+
+The installer targets Debian 13, Ubuntu 26.04, and Fedora 44 on ARM64 (`aarch64`), and has
 been successfully tested on [Asahi Linux](https://asahilinux.org/) and in
 Android chroot environments like [Trixie.apk](https://github.com/DesktopECHO/trixie.apk).
 
@@ -21,6 +20,8 @@ a result, the XML Layout Editor and Compose Preview remained completely broken.
 This project integrates the ARM64 runtime and the SDK and NDK tools. It also
 supplies the rebuilt layoutlib libraries required for a complete developer
 workflow.
+
+**This is an unofficial port and is not supported by Google or JetBrains.**
 
 ## Install Android Studio
 
@@ -61,10 +62,10 @@ CACHE_DIR         Download cache
 ```
 
 The installer preserves an existing Android Studio directory as a timestamped
-backup, creates a desktop entry, installs the distro-provided `adb` in the SDK's
-`platform-tools` directory, installs the bundled ARM64 Layout Editor and Compose
-Preview libraries, and configures a per-user ARM64 `aapt2` override in
-`~/.gradle/gradle.properties`.
+backup, creates a desktop entry, monitors the SDK's `platform-tools/adb` and
+replaces it with the distro-provided version if it is not ARM64, installs the
+bundled ARM64 Layout Editor and Compose Preview libraries, and configures a
+per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties`.
 
 ## Layout/Compose Engine
 
@@ -128,11 +129,4 @@ for unresolved dynamic dependencies. Debug sections are removed so each library
 remains below GitHub's 100 MiB regular-file limit. The default parallelism is
 selected automatically from the host's available CPU count.
 
-## Status
-
-The installer and native rendering libraries have been exercised on Debian 13
-ARM64. Android Studio launches with the ARM64 JBR, project builds use native SDK
-tools, and the XML Layout Editor and Compose Preview load both rebuilt layoutlib
-libraries.
-
-This is an unofficial port and is not supported by Google or JetBrains.
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9f6dde6c-2001-42f2-9823-0597f11db412" />
