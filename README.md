@@ -2,7 +2,7 @@
 
 Unofficial Android Studio packaging for glibc-based Linux ARM64 systems. The
 installer combines the Android Studio distribution with the ARM64 JetBrains
-Runtime and native components, an ARM64 Android SDK and NDK, and native rendering
+Runtime and native components, an ARM64 Android SDK and NDK from [@HomuHomu833](https://github.com/HomuHomu833), and native rendering
 libraries for the XML Layout Editor and Compose Preview. 
 
 The installer does not include an emulator. Developers using Apple Silicon users can run the [Ika Android Emulator](https://github.com/DesktopECHO/ika), or a physical Android device can also be used to run and debug applications.
