@@ -48,8 +48,8 @@ SDK_ROOT_DIR="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}" NDK_DIR="${NDK_DIR:-${SDK_
 LAYOUTLIB_SOURCE_DIR="${LAYOUTLIB_SOURCE_DIR:-${SCRIPT_DIR}/lib}"
 AS_VERSION="2026.1.3.8" AS_ARCHIVE="android-studio-quail3-patch1-linux.tar.gz" AS_URL="https://redirector.gvt1.com/edgedl/android/studio/ide-zips/${AS_VERSION}/${AS_ARCHIVE}" AS_SHA256="5bd5ee5d6e747b13f82fba3241380bd358cc2f4a847815c8e860757df13dc35f"
 IDEA_VERSION="2026.1.4" IDEA_ARCHIVE="idea-2026.1.4-aarch64.tar.gz" IDEA_URL="https://download.jetbrains.com/idea/${IDEA_ARCHIVE}" IDEA_SHA256="303645b8bad4c5c0887346618b842180a3de53b3e0b3da09fc5c501f59f78013"
-SDK_RELEASE_VERSION="37.0.0" SDK_ARCHIVE="android-sdk-aarch64-linux-musl.tar.xz" SDK_URL="https://github.com/HomuHomu833/android-sdk-custom/releases/download/${SDK_RELEASE_VERSION}/${SDK_ARCHIVE}" SDK_SHA256="b8424efb05ed7a25eb0ded8cea7f630ce59c9edab7ea06223aba9aa16bf40175"
-NDK_VERSION="r30-beta2" NDK_DISPLAY_VERSION="r30" NDK_RELEASE_TAG="r30" NDK_BUILD_NUMBER="30.0.15729638" NDK_ARCHIVE="android-ndk-${NDK_VERSION}-aarch64-linux-musl.tar.xz" NDK_URL="https://github.com/HomuHomu833/android-ndk-custom/releases/download/${NDK_RELEASE_TAG}/${NDK_ARCHIVE}" NDK_SHA256="82cfdb69f08b27e9ed9c2e912cb2d638081522221fd2cdf75fbf3d0afb6e75b2"
+SDK_RELEASE_VERSION="37.0.0" SDK_ARCHIVE="android-sdk-aarch64-linux-musl.tar.xz" SDK_URL="https://github.com/HomuHomu833/android-sdk-custom/releases/download/${SDK_RELEASE_VERSION}/${SDK_ARCHIVE}" SDK_SHA256="b904edf8cf20c233de9d884a2da4a8e7eadea4d23aa10859abb9466660f3e803"
+NDK_VERSION="r30-beta3" NDK_DISPLAY_VERSION="r30" NDK_RELEASE_TAG="r30" NDK_BUILD_NUMBER="30.0.15729638" NDK_ARCHIVE="android-ndk-${NDK_VERSION}-aarch64-linux-musl.tar.xz" NDK_URL="https://github.com/HomuHomu833/android-ndk-custom/releases/download/${NDK_RELEASE_TAG}/${NDK_ARCHIVE}" NDK_SHA256="8ef94e4e5aa9193f47eb90e7870ca3c4f6ab2239de166fb236fd19952374f991"
 
 die(){ echo "ERROR: $*" >&2; exit 1; }
 need(){ command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
