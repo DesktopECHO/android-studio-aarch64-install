@@ -3,7 +3,9 @@
 Unofficial Android Studio packaging for glibc-based Linux ARM64 systems. The
 installer combines the Android Studio distribution with the ARM64 JetBrains
 Runtime and native components, an ARM64 Android SDK and NDK from [@HomuHomu833](https://github.com/HomuHomu833), and native rendering
-libraries for the XML Layout Editor and Compose Preview. 
+libraries for the XML Layout Editor and Compose Preview. It also installs the
+JetBrains-patched ARM64 clangd bundle from the matching CLion release for NDK
+code insight.
 
 The installer does not include an emulator. Developers using Apple Silicon users can run the [Ika Android Emulator](https://github.com/DesktopECHO/ika), or a physical Android device can also be used to run and debug applications.
 
@@ -18,8 +20,8 @@ Existing community ports could launch the IDE by replacing the JetBrains Runtime
 but no ARM64 replacements were available for the native rendering libraries. As
 a result, the XML Layout Editor and Compose Preview remained completely broken.
 This project integrates the ARM64 runtime and the SDK and NDK tools. It also
-supplies the rebuilt layoutlib libraries required for a complete developer
-workflow.
+supplies the rebuilt layoutlib libraries and ARM64 clangd tooling required for
+a complete developer workflow.
 
 **This is an unofficial port and is not supported by Google or JetBrains.**
 
@@ -65,7 +67,9 @@ The installer preserves an existing Android Studio directory as a timestamped
 backup, creates a desktop entry, monitors the SDK's `platform-tools/adb` and
 replaces it with the distro-provided version if it is not ARM64, installs the
 bundled ARM64 Layout Editor and Compose Preview libraries, and configures a
-per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties`.
+per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties`. It downloads
+the matching CLion ARM64 archive and copies only its clang tooling into Android
+Studio's `cidr-clangd` plugin.
 
 ## Layout/Compose Engine
 

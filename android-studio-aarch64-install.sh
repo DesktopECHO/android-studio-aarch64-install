@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 #
+# Changes 2026-09-16
+#
+# - Added the JetBrains-patched ARM64 clangd bundle from CLion for NDK code insight.
+#
 # Changes 2026-08-14
 #
 # - Updated package pins to Android Studio `2026.1.3.8`, IntelliJ donor `2026.1.4`, Android SDK `37.0.0`, and Android NDK `r30` (`30.0.15729638`).
@@ -48,6 +52,7 @@ SDK_ROOT_DIR="${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}" NDK_DIR="${NDK_DIR:-${SDK_
 LAYOUTLIB_SOURCE_DIR="${LAYOUTLIB_SOURCE_DIR:-${SCRIPT_DIR}/lib}"
 AS_VERSION="2026.1.4.7" AS_ARCHIVE="android-studio-quail4-linux.tar.gz" AS_URL="https://redirector.gvt1.com/edgedl/android/studio/ide-zips/${AS_VERSION}/${AS_ARCHIVE}" AS_SHA256="4be240083df5ada290975d87d60fc212a3d38d4f258a1250989885a9dbc79980"
 IDEA_VERSION="2026.1.4" IDEA_ARCHIVE="idea-2026.1.4-aarch64.tar.gz" IDEA_URL="https://download.jetbrains.com/idea/${IDEA_ARCHIVE}" IDEA_SHA256="303645b8bad4c5c0887346618b842180a3de53b3e0b3da09fc5c501f59f78013"
+CLION_VERSION="2026.1.4" CLION_ARCHIVE="CLion-${CLION_VERSION}-aarch64.tar.gz" CLION_URL="https://download.jetbrains.com/cpp/${CLION_ARCHIVE}" CLION_SHA256="23a20a42783894db5195022ad3c2b96ee7aa80a23fab56b05f812e467c809ce9"
 SDK_RELEASE_VERSION="37.0.0" SDK_ARCHIVE="android-sdk-aarch64-linux-musl.tar.xz" SDK_URL="https://github.com/HomuHomu833/android-sdk-custom/releases/download/${SDK_RELEASE_VERSION}/${SDK_ARCHIVE}" SDK_SHA256="b904edf8cf20c233de9d884a2da4a8e7eadea4d23aa10859abb9466660f3e803"
 NDK_VERSION="r30-beta3" NDK_DISPLAY_VERSION="r30" NDK_RELEASE_TAG="r30" NDK_BUILD_NUMBER="30.0.15729638" NDK_ARCHIVE="android-ndk-${NDK_VERSION}-aarch64-linux-musl.tar.xz" NDK_URL="https://github.com/HomuHomu833/android-ndk-custom/releases/download/${NDK_RELEASE_TAG}/${NDK_ARCHIVE}" NDK_SHA256="8ef94e4e5aa9193f47eb90e7870ca3c4f6ab2239de166fb236fd19952374f991"
 
@@ -109,7 +114,7 @@ for cmd in curl tar xz sha256sum find awk sed mktemp cp mv rm nohup grep dirname
 case "$(uname -m)" in aarch64|arm64) ;; *) die "This installer is for aarch64/arm64 hosts; detected: $(uname -m)" ;; esac
 command -v adb >/dev/null 2>&1 || die 'adb not found, "sudo apt install adb" on Debian/Ubuntu or "sudo dnf install android-tools" on Fedora/RedHat'
 validate_layoutlib
-if (( DRY_RUN )); then for url in "$AS_URL" "$IDEA_URL" "$SDK_URL" "$NDK_URL"; do check_url "$url"; done; echo "Dry run completed successfully."; exit 0; fi
+if (( DRY_RUN )); then for url in "$AS_URL" "$IDEA_URL" "$CLION_URL" "$SDK_URL" "$NDK_URL"; do check_url "$url"; done; echo "Dry run completed successfully."; exit 0; fi
 
 cat <<EOF
 
@@ -121,7 +126,7 @@ read -r -p "Hit [Enter] to continue, [CTRL-C] to quit. "
 echo
 
 mkdir -p "$INSTALL_DIR" "$SDK_ROOT_DIR" "$NDK_DIR" "$CACHE_DIR"
-AS_TGZ="${CACHE_DIR}/${AS_ARCHIVE}" IDEA_TGZ="${CACHE_DIR}/${IDEA_ARCHIVE}" SDK_TXZ="${CACHE_DIR}/${SDK_ARCHIVE}" NDK_TXZ="${CACHE_DIR}/${NDK_ARCHIVE}"
+AS_TGZ="${CACHE_DIR}/${AS_ARCHIVE}" IDEA_TGZ="${CACHE_DIR}/${IDEA_ARCHIVE}" CLION_TGZ="${CACHE_DIR}/${CLION_ARCHIVE}" SDK_TXZ="${CACHE_DIR}/${SDK_ARCHIVE}" NDK_TXZ="${CACHE_DIR}/${NDK_ARCHIVE}"
 
 echo "==> Installing Android Studio ${AS_VERSION}"
 fetch "$AS_URL" "$AS_TGZ" "$AS_SHA256"
@@ -134,6 +139,13 @@ TMP="$(mktemp -d)"; tar --no-same-owner -C "$TMP" -xzf "$IDEA_TGZ"; IDEA_ROOT="$
 [[ -n "$IDEA_ROOT" ]] || die "Could not locate IntelliJ IDEA archive root"
 for rel in bin/fsnotifier bin/restarter lib/jna lib/native lib/pty4j lib/skiko-awt-runtime-all jbr; do copy_if "${IDEA_ROOT}/${rel}" "${AS_ROOT_DIR}/${rel}"; done
 rm -rf "$TMP"; [[ -x "${AS_ROOT_DIR}/jbr/bin/java" ]] || die "ARM64 JBR was not installed correctly"
+
+echo "==> Merging ARM64 clang tools from CLion ${CLION_VERSION}"
+fetch "$CLION_URL" "$CLION_TGZ" "$CLION_SHA256"
+TMP="$(mktemp -d)"; tar --no-same-owner -C "$TMP" -xzf "$CLION_TGZ" "clion-${CLION_VERSION}/bin/clang/linux/aarch64"
+copy_if "${TMP}/clion-${CLION_VERSION}/bin/clang/linux/aarch64" "${AS_ROOT_DIR}/plugins/cidr-clangd/bin/clang/linux/aarch64"
+rm -rf "$TMP"
+file "${AS_ROOT_DIR}/plugins/cidr-clangd/bin/clang/linux/aarch64/bin/clangd" 2>/dev/null | grep -q 'ELF 64-bit.*ARM aarch64' || die "ARM64 clangd was not installed correctly"
 
 echo "==> Patching Android Studio launch metadata"
 [[ -e "${AS_ROOT_DIR}/bin/studio" && ! -e "${AS_ROOT_DIR}/bin/studio.x86_64" ]] && mv "${AS_ROOT_DIR}/bin/studio" "${AS_ROOT_DIR}/bin/studio.x86_64"
