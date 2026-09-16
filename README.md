@@ -67,9 +67,10 @@ The installer preserves an existing Android Studio directory as a timestamped
 backup, creates a desktop entry, monitors the SDK's `platform-tools/adb` and
 replaces it with the distro-provided version if it is not ARM64, installs the
 bundled ARM64 Layout Editor and Compose Preview libraries, and configures a
-per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties`. It downloads
-the matching CLion ARM64 archive and copies only its clang tooling into Android
-Studio's `cidr-clangd` plugin.
+per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties` while
+suppressing its AGP experimental-option warning. It downloads the matching
+CLion ARM64 archive and copies only its clang tooling into Android Studio's
+`cidr-clangd` plugin.
 
 ## Layout/Compose Engine
 

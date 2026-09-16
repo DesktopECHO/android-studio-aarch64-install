@@ -3,6 +3,7 @@
 # Changes 2026-09-16
 #
 # - Added the JetBrains-patched ARM64 clangd bundle from CLion for NDK code insight.
+# - Suppressed the AGP warning for the user-wide ARM64 aapt2 override.
 #
 # Changes 2026-08-14
 #
@@ -168,7 +169,7 @@ while IFS= read -r -d '' p; do b=${p##*/}; rm -rf "${SDK_ROOT_DIR:?}/$b"; mv "$p
 rm -rf "$TMP"
 guard_native_adb
 mkdir -p "$HOME/.gradle"
-{ grep -v '^android\.aapt2FromMavenOverride=' "$HOME/.gradle/gradle.properties" 2>/dev/null || true; echo "android.aapt2FromMavenOverride=${SDK_ROOT_DIR}/build-tools/${SDK_RELEASE_VERSION}/aapt2"; } > "$HOME/.gradle/gradle.properties.new" && mv "$HOME/.gradle/gradle.properties.new" "$HOME/.gradle/gradle.properties"
+{ grep -v -e '^android\.aapt2FromMavenOverride=' -e '^android\.sync\.suppressAgpWarnings=' "$HOME/.gradle/gradle.properties" 2>/dev/null || true; echo "android.aapt2FromMavenOverride=${SDK_ROOT_DIR}/build-tools/${SDK_RELEASE_VERSION}/aapt2"; echo 'android.sync.suppressAgpWarnings=UNSUPPORTED_PROJECT_OPTION_USE'; } > "$HOME/.gradle/gradle.properties.new" && mv "$HOME/.gradle/gradle.properties.new" "$HOME/.gradle/gradle.properties"
 
 echo "==> Overwriting x86_64 build-tools binaries with ARM64 copies"
 overwrite_arm64_build_tools
