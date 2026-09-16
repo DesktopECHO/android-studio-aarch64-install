@@ -4,6 +4,7 @@
 #
 # - Added the JetBrains-patched ARM64 clangd bundle from CLion for NDK code insight.
 # - Suppressed the AGP warning for the user-wide ARM64 aapt2 override.
+# - Corrected the Android NDK r30-beta3 package revision.
 #
 # Changes 2026-08-14
 #
@@ -55,7 +56,7 @@ AS_VERSION="2026.1.4.7" AS_ARCHIVE="android-studio-quail4-linux.tar.gz" AS_URL="
 IDEA_VERSION="2026.1.4" IDEA_ARCHIVE="idea-2026.1.4-aarch64.tar.gz" IDEA_URL="https://download.jetbrains.com/idea/${IDEA_ARCHIVE}" IDEA_SHA256="303645b8bad4c5c0887346618b842180a3de53b3e0b3da09fc5c501f59f78013"
 CLION_VERSION="2026.1.4" CLION_ARCHIVE="CLion-${CLION_VERSION}-aarch64.tar.gz" CLION_URL="https://download.jetbrains.com/cpp/${CLION_ARCHIVE}" CLION_SHA256="23a20a42783894db5195022ad3c2b96ee7aa80a23fab56b05f812e467c809ce9"
 SDK_RELEASE_VERSION="37.0.0" SDK_ARCHIVE="android-sdk-aarch64-linux-musl.tar.xz" SDK_URL="https://github.com/HomuHomu833/android-sdk-custom/releases/download/${SDK_RELEASE_VERSION}/${SDK_ARCHIVE}" SDK_SHA256="b904edf8cf20c233de9d884a2da4a8e7eadea4d23aa10859abb9466660f3e803"
-NDK_VERSION="r30-beta3" NDK_DISPLAY_VERSION="r30" NDK_RELEASE_TAG="r30" NDK_BUILD_NUMBER="30.0.15729638" NDK_ARCHIVE="android-ndk-${NDK_VERSION}-aarch64-linux-musl.tar.xz" NDK_URL="https://github.com/HomuHomu833/android-ndk-custom/releases/download/${NDK_RELEASE_TAG}/${NDK_ARCHIVE}" NDK_SHA256="8ef94e4e5aa9193f47eb90e7870ca3c4f6ab2239de166fb236fd19952374f991"
+NDK_VERSION="r30-beta3" NDK_DISPLAY_VERSION="r30" NDK_RELEASE_TAG="r30" NDK_BUILD_NUMBER="30.0.16138531" NDK_ARCHIVE="android-ndk-${NDK_VERSION}-aarch64-linux-musl.tar.xz" NDK_URL="https://github.com/HomuHomu833/android-ndk-custom/releases/download/${NDK_RELEASE_TAG}/${NDK_ARCHIVE}" NDK_SHA256="8ef94e4e5aa9193f47eb90e7870ca3c4f6ab2239de166fb236fd19952374f991"
 
 die(){ echo "ERROR: $*" >&2; exit 1; }
 need(){ command -v "$1" >/dev/null 2>&1 || die "Required command not found: $1"; }
