@@ -1,15 +1,16 @@
 # Android Studio for Linux ARM64
 
 Unofficial Android Studio packaging for glibc-based Linux ARM64 systems. The
-installer combines the Android Studio distribution with the ARM64 JetBrains
-Runtime and native components, an ARM64 Android SDK and NDK from [@HomuHomu833](https://github.com/HomuHomu833), and native rendering
+installer combines the Android Studio distribution with the full ARM64 JetBrains
+Runtime SDK (including `jlink`), ARM64 IntelliJ platform native components, ARM64
+FFmpeg/JavaCPP natives for device mirroring, an ARM64 Android SDK and NDK from [@HomuHomu833](https://github.com/HomuHomu833), and native rendering
 libraries for the XML Layout Editor and Compose Preview. It also installs the
 JetBrains-patched ARM64 clangd bundle from the matching CLion release for NDK
 code insight.
 
 The installer does not include an emulator. Developers using Apple Silicon users can run the [Ika Android Emulator](https://github.com/DesktopECHO/ika), or a physical Android device can also be used to run and debug applications.
 
-The installer targets Debian 13, Ubuntu 26.04, and Fedora 44 on ARM64 (`aarch64`), and has
+The installer targets Debian 13, Ubuntu 26.04, Fedora 44, and Arch Linux ARM on ARM64 (`aarch64`), and has
 been successfully tested on [Asahi Linux](https://asahilinux.org/) and in
 Android chroot environments like [Trixie.apk](https://github.com/DesktopECHO/trixie.apk).
 
@@ -27,7 +28,8 @@ a complete developer workflow.
 
 ## Install Android Studio
 
-Install Git and the distro-provided `adb`:
+Install Git (and, optionally, the distro-provided `adb`; otherwise the ARM64
+`adb` from the bundled SDK is used):
 
 ```bash
 # Debian/Ubuntu
@@ -35,6 +37,9 @@ sudo apt install adb git
 
 # Fedora/Red Hat
 sudo dnf install android-tools git
+
+# Arch Linux ARM
+sudo pacman -S --needed android-tools git file
 ```
 
 Clone the repository and run the installer as the desktop user, not as root:
@@ -50,6 +55,7 @@ Available options:
 ```text
 --dry-run    Verify download URLs without installing
 --no-launch  Complete the install without starting Android Studio
+--yes        Skip the confirmation prompt
 --help       Show command help
 ```
 
@@ -64,13 +70,51 @@ CACHE_DIR         Download cache
 ```
 
 The installer preserves an existing Android Studio directory as a timestamped
-backup, creates a desktop entry, monitors the SDK's `platform-tools/adb` and
-replaces it with the distro-provided version if it is not ARM64, installs the
+backup, creates a desktop entry, and installs a `bin/studio` launcher that, while
+Android Studio runs, replaces any x86_64 `platform-tools/adb`, `aapt2` or
+`zipalign` installed by the SDK Manager with ARM64 copies kept in
+`bin/arm64-sdk-tools/`. It installs the
 bundled ARM64 Layout Editor and Compose Preview libraries, and configures a
 per-user ARM64 `aapt2` override in `~/.gradle/gradle.properties` while
 suppressing its AGP experimental-option warning. It downloads the matching
 CLion ARM64 archive and copies only its clang tooling into Android Studio's
 `cidr-clangd` plugin.
+
+## Pinned Components
+
+| Component | Version | Source |
+| --- | --- | --- |
+| Android Studio | 2026.2.2.9 (Rabbit 2 Patch 1, platform 262.10968.63) | Google |
+| IntelliJ IDEA (native donor) | 2026.2.3 (262.10968.63) | JetBrains |
+| JetBrains Runtime SDK | 25.0.4 b508.27 (same build Android Studio bundles) | JetBrains |
+| CLion (clangd donor) | 2026.2.3 | JetBrains |
+| bytedeco FFmpeg / JavaCPP | 7.1.1-1.5.12 / 1.5.12 `linux-arm64` | Maven Central |
+| Android SDK | 37.0.0 (build-tools 37.0.0, platform-tools 37.0.1) | HomuHomu833 (mirrored) |
+| Android NDK | r30 (30.0.16248370) | HomuHomu833 |
+
+Why the extra components:
+
+- **JBR SDK**: IntelliJ IDEA bundles a trimmed runtime without `jdk.jlink`,
+  `jdk.jartool` and `jdk.jdeps`. AGP runs `jlink` (JdkImageTransform) with the
+  Gradle JDK, which defaults to Android Studio's embedded `jbr`, so the full JBR
+  SDK is installed instead.
+- **FFmpeg/JavaCPP**: device mirroring decodes the video stream with bytedeco
+  FFmpeg (`libjniavutil.so`, `libjniavcodec.so`, ...). Android Studio only ships
+  the `linux-x86_64` jars; the installer swaps in the `linux-arm64` jars and
+  updates `product-info.json`. Studio's optional native `libvideo_decoder.so` is
+  x86_64-only, so it logs a fallback to FFmpeg, which is expected.
+
+## Known Limitations
+
+These bundled host tools are Google-built x86_64 binaries without ARM64 Linux
+equivalents and remain non-functional:
+
+- Native (LLDB) debugging: `plugins/android-ndk/resources/lldb`
+- CPU/system trace analysis in the Profiler: `trace_processor_daemon`,
+  `trace-processor`, `traceconv`, host `simpleperf`
+- Gemini local models (`llama.cpp`), the `android` CLI, and the WebP image
+  plugin's `libwebp_jni.so`
+- The Android Emulator
 
 ## Layout/Compose Engine
 
